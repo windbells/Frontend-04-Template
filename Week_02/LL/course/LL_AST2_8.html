@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>使用LL算法构建AST|正则表达式</title>
+  </head>
+  <body>
+    <script>
+      var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+      // 数字/空格/换行符/加减乘除符号
+      var dictionary = [
+        'Number',
+        'Whitespace',
+        'LineTerminator',
+        '*',
+        '/',
+        '+',
+        '-',
+      ];
+      function* tokenize(source) {
+        let result = null;
+        let lastIndex = 0;
+        while (true) {
+          lastIndex = regexp.lastIndex; // 上一次执行的位置
+          // console.log('=============lastIndex==============', lastIndex);
+          // exec得到的数组的第 0 个元素是与正则表达式相匹配的文本，第 1 个元素是与 RegExpObject 的第 1 个子表达式相匹配的文本（如果有的话），
+          // 第 2 个元素是与 RegExpObject 的第 2 个子表达式相匹配的文本（如果有的话），以此类推。
+          result = regexp.exec(source);
+          if (!result) {
+            break;
+          }
+          // 匹配出来中间有不认识的字符也break
+          // 比如tokenize('1024 + K10 *  25')，lastIndex=7，regexp.lastIndex=10，result[0].length=2
+          if (regexp.lastIndex - lastIndex > result[0].length) {
+            break;
+          }
+          const token = {
+            value: null,
+            type: null,
+          };
+          for (let i = 1; i < result.length; i += 1) {
+            if (result[i]) {
+              // console.log(dictionary[i - 1]);
+              token.type = dictionary[i - 1];
+            }
+          }
+          token.value = result[0];
+          yield token;
+        }
+        yield {
+          type: 'EOF',
+          value: null,
+        };
+      }
+
+      for (const token of tokenize('1024 + K10 *  25')) {
+        console.log('token====', token);
+      }
+    </script>
+  </body>
+</html>
