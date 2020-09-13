@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>红绿灯</title>
+    <style>
+      .light-page {
+        margin-top: 100px;
+        text-align: center;
+      }
+      .light {
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+      }
+      .light:not(first-child) {
+        margin-left: 20px;
+      }
+      .light--red {
+        background: red;
+      }
+      .light--yellow {
+        background: yellow;
+      }
+      .light--green {
+        background: green;
+      }
+      .light--off {
+        background: #bbb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="light-page">
+      <div class="light light--green light--off"></div>
+      <div class="light light--yellow light--off"></div>
+      <div class="light light--red light--off"></div>
+    </div>
+
+    <script>
+      var LIGHT_LIST = ['green', 'yellow', 'red'];
+      // 当前灯亮，其他的灯要熄灭
+      function lighting(current) {
+        LIGHT_LIST.forEach(function (item) {
+          if (item === current) {
+            document
+              .querySelector('.' + 'light--' + item)
+              .classList.remove('light--off');
+          } else {
+            document
+              .querySelector('.' + 'light--' + item)
+              .classList.add('light--off');
+          }
+        });
+      }
+
+      // // 1. 使用回调方式实现
+      // function lunchLight() {
+      //   lighting('green');
+      //   setTimeout(function () {
+      //     lighting('yellow');
+      //     setTimeout(function () {
+      //       lighting('red');
+      //       setTimeout(function () {
+      //         lunchLight();
+      //       }, 1000 * 5);
+      //     }, 1000 * 2);
+      //   }, 1000 * 10);
+      // }
+
+      // 使用Promise实现
+      function sleep(time) {
+        return new Promise((resolve, reject) => {
+          setTimeout(resolve, time);
+        });
+      }
+
+      // 2. 使用Promise.then执行
+      // function lunchLight() {
+      //   lighting('green');
+      //   sleep(1000 * 10)
+      //     .then(() => {
+      //       lighting('yellow');
+      //       return sleep(1000 * 2);
+      //     })
+      //     .then(() => {
+      //       lighting('red');
+      //       return sleep(1000 * 5);
+      //     })
+      //     .then(lunchLight);
+      // }
+
+      // 3. 使用async和await执行Promise
+      async function lunchLight() {
+        while (true) {
+          lighting('green');
+          await sleep(1000 * 10);
+          lighting('yellow');
+          await sleep(1000 * 2);
+          lighting('red');
+          await sleep(1000 * 5);
+        }
+      }
+      lunchLight();
+    </script>
+  </body>
+</html>

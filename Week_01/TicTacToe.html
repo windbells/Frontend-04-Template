@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>三子棋</title>
+    <style>
+      .cell-box {
+        margin: 100px auto 0;
+        width: 300px;
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .cell {
+        flex-shrink: 0;
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+        font-size: 50px;
+        border: 1px solid #bbb;
+        text-align: center;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="board" class="cell-box"></div>
+
+    <script>
+      window.onload = function () {
+        show();
+      };
+
+      // 棋子
+      const iconType = {
+        1: '⭕️',
+        2: '❌',
+      };
+
+      let pattern = [0, 0, 0, 1, 0, 0, 0, 0, 0];
+
+      // 当前正在走的棋子
+      let currentValue = 2;
+
+      // 初始化棋盘
+      function show() {
+        let board = document.getElementById('board');
+        board.innerHTML = '';
+
+        pattern.forEach((item, i) => {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.innerText = iconType[item] || '';
+          cell.addEventListener('click', () => {
+            // 当前已有棋子，则略过
+            if (!pattern[i]) {
+              userMove(i);
+            }
+          });
+          board.appendChild(cell);
+        });
+      }
+
+      // 用户下棋
+      function userMove(i) {
+        pattern[i] = currentValue;
+        // console.log(bestChoice(pattern, currentValue));
+        // 轮到电脑下棋
+        currentValue = 3 - currentValue;
+        // 显示目前棋盘结果
+        show();
+        const winner = check(pattern);
+        if (winner) {
+          alert(`${winner} is win`);
+          show();
+          reset();
+          return;
+        }
+        // if (willWin(pattern, currentValue)) {
+        //   const winner = currentValue === 1 ? iconType[1] : iconType[2];
+        //   console.log(`${winner} will win`);
+        // }
+        // // 1秒后电脑下棋
+        setTimeout(() => computerMove(), 1000);
+      }
+
+      // 电脑下棋
+      function computerMove() {
+        let { point: index, result } = bestChoice(pattern, currentValue);
+        if (typeof index !== 'number') {
+          console.log('平局');
+          return;
+        }
+        pattern[index] = currentValue;
+        document.getElementById('board').children[index].innerText =
+          iconType[currentValue];
+        currentValue = 3 - currentValue;
+        show();
+        const winner = check(pattern);
+        if (winner) {
+          setTimeout(() => {
+            alert(`${winner} is win`);
+            reset();
+          }, 0);
+        }
+      }
+
+      // 判断棋盘走势，下一步谁会赢
+      function check(pattern) {
+        // 左斜边相等
+        if (
+          pattern[0] &&
+          pattern[0] === pattern[4] &&
+          pattern[4] === pattern[8]
+        ) {
+          return iconType[pattern[0]];
+        }
+        // 右斜边相等
+        if (
+          pattern[2] &&
+          pattern[2] === pattern[4] &&
+          pattern[2] === pattern[6]
+        ) {
+          return iconType[pattern[2]];
+        }
+        // 三横和三纵
+        for (let i = 0; i < 3; i += 1) {
+          // 行相等
+          if (
+            pattern[i * 3] &&
+            pattern[i * 3] === pattern[i * 3 + 1] &&
+            pattern[i * 3] === pattern[i * 3 + 2]
+          ) {
+            return iconType[pattern[i * 3]];
+          }
+          // 列相等
+          if (
+            pattern[i] &&
+            pattern[i] === pattern[i + 3] &&
+            pattern[i] === pattern[i + 6]
+          ) {
+            return iconType[pattern[i]];
+          }
+        }
+        return false;
+      }
+
+      // 找出能赢的下一步
+      function willWin(pattern, currentValue) {
+        for (let i = 0; i < pattern.length; i += 1) {
+          const cell = pattern[i];
+          if (!cell) {
+            const temp = clone(pattern);
+            temp[i] = currentValue;
+            if (check(temp)) {
+              return {
+                point: i,
+              };
+            }
+          }
+        }
+        return null;
+      }
+
+      // 清空棋盘
+      function reset() {
+        pattern.fill(0);
+        const board = document.getElementById('board');
+        const cellList = board.children;
+        for (let i = 0; i < cellList.length; i++) {
+          cellList[i].innerText = '';
+        }
+      }
+
+      function clone(pattern) {
+        return Object.create(pattern);
+      }
+      /**
+       * 1代表赢
+       * 0代表和棋
+       * -2代表最差结果，初始化值
+       * -1代表输
+       */
+      // 当前局面下最好的落子
+      function bestChoice(pattern, currentValue) {
+        const willWinPoint = willWin(pattern, currentValue);
+        // 如果下一步会赢，则是最好的落子
+        if (willWinPoint) {
+          return {
+            point: willWinPoint.point,
+            result: 1,
+          };
+        }
+        let result = -2;
+        let point = null;
+
+        for (let i = 0; i < pattern.length; i += 1) {
+          if (!pattern[i]) {
+            const temp = clone(pattern);
+            temp[i] = currentValue;
+            // 找到对方落子之后为最差结果的落子位置，对方最差的落子结果即为我方最好的落子结果
+            const { result: r } = bestChoice(temp, 3 - currentValue);
+            if (-r > result) {
+              result = -r;
+              point = i;
+            }
+          }
+          // 胜负剪枝，找到一个等于1的点就立刻返回
+          if (result === 1) {
+            break;
+          }
+        }
+        return {
+          point: point,
+          result: typeof point === 'number' ? result : 0, // 如果已经走完了双方还没分出胜负，那么代表和棋。用typeof避免point为0时判断错误
+        };
+      }
+    </script>
+  </body>
+</html>
