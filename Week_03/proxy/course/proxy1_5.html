@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proxy</title>
+  </head>
+  <body>
+    <script>
+      let object = {
+        a: 1,
+        b: 2,
+      };
+
+      // 第一个参数是要操作的对象，第二个参数是配置项
+      let po = new Proxy(object, {
+        // 设置对象的属性时，会触发set函数
+        // 即使设置一个po没有的值，也会触发set
+        set(obj, prop, val) {
+          console.log(obj, prop, val);
+        },
+      });
+    </script>
+  </body>
+</html>

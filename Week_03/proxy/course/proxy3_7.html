@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proxy</title>
+  </head>
+  <body>
+    <script>
+      let callbackList = [];
+      let object = {
+        a: 1,
+        b: 2,
+      };
+
+      // 实现po对object的完全代理
+      let po = reactive(object);
+
+      // 通过effect实现事件监听
+      // 直接监听po上面的属性，以此来代替事件监听机制
+      effect(() => {
+        console.log('po.a', po.a);
+        debugger;
+      });
+
+      // 接受一个回调函数作为参数
+      function effect(callback) {
+        callbackList.push(callback);
+      }
+
+      // 对对象做某种监听或者改变它的行为
+      function reactive(object) {
+        return new Proxy(object, {
+          set(obj, prop, val) {
+            obj[prop] = val;
+            for (let callback of callbackList) {
+              callback();
+            }
+            return obj[prop];
+          },
+          get(obj, prop) {
+            console.log(obj, prop);
+            return obj[prop];
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

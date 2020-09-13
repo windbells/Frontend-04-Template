@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>使用Range实现DOM精准操作|正常流里的拖拽</title>
+    <style>
+      .dragable {
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        background: pink;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字
+    </div>
+    <div id="dragable" class="dragable"></div>
+
+    <script>
+      const dragable = document.getElementById('dragable');
+      let baseX = 0,
+        baseY = 0; // 上一次的translate值
+      dragable.addEventListener('mousedown', (event) => {
+        // 鼠标按下down的时候位置
+        let startX = event.clientX,
+          startY = event.clientY;
+        const up = (event) => {
+          baseX = baseX + event.clientX - startX;
+          baseY = baseY + event.clientY - startY;
+          document.removeEventListener('mousemove', move);
+          document.removeEventListener('mouseup', up);
+        };
+
+        const move = (event) => {
+          // 偏移的距离 = 鼠标坐标 - 点下的坐标
+          // dragable.style.transform = `translate(${
+          //   baseX + event.clientX - startX
+          // }px, ${baseY + event.clientY - startY}px)`;
+
+          const range = getNearest(event.clientX, event.clientY);
+          range.insertNode(dragable); // insertNode方法可以插入一个节点到Range中，如果元素已经在DOM上，会默认把原来的移除掉
+        };
+        // 在document上监听是为了防止鼠标移动太快，超出dragable元素的范围导致捕获不到事件
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+      });
+
+      const container = document.getElementById('container');
+      // 找到所有能插的缝隙
+      const ranges = [];
+      // container.childNodes[0]为container的textNode，文字节点
+      for (let i = 0; i < container.childNodes[0].textContent.length; i++) {
+        const range = document.createRange();
+        range.setStart(container.childNodes[0], i);
+        range.setEnd(container.childNodes[0], i);
+
+        console.log(range.getBoundingClientRect());
+        ranges.push(range);
+      }
+
+      // 找到离某个point最近的range
+      function getNearest(x, y) {
+        let min = Infinity;
+        let nearest = null;
+        for (const range of ranges) {
+          const rect = range.getBoundingClientRect();
+          const distance = (rect.x - x) ** 2 + (rect.y - y) ** 2;
+          if (distance < min) {
+            nearest = range;
+            min = distance;
+          }
+        }
+        return nearest;
+      }
+
+      // 禁止选中选项事件
+      document.addEventListener('selectstart', (event) =>
+        event.preventDefault()
+      );
+    </script>
+  </body>
+</html>

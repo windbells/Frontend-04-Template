@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proxy</title>
+  </head>
+  <body>
+    <script>
+      // 概要：给reactive和effect之间建立一个连接
+
+      // object作为key
+      let callbacks = new Map();
+      let usedReactives = [];
+      let object = {
+        a: {
+          b: 3,
+        },
+        b: 2,
+      };
+
+      // 实现po对object的完全代理
+      let po = reactive(object);
+
+      // 通过effect实现事件监听
+      // 直接监听po上面的属性，以此来代替事件监听机制
+      effect(() => {
+        console.log('po.a.b ', po.a.b);
+      });
+
+      // 接受一个回调函数作为参数
+      function effect(callback) {
+        // callbacks.push(callback);
+        usedReactives = [];
+        callback();
+        console.log(usedReactives);
+        for (let reactivity of usedReactives) {
+          if (!callbacks.has(reactivity[0])) {
+            // 第一层放对象
+            callbacks.set(reactivity[0], new Map());
+          }
+          // 第二层放属性
+          if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
+            // 第一层放对象
+            callbacks.get(reactivity[0]).set(reactivity[1], []);
+          }
+          callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        }
+      }
+
+      // 对对象做某种监听或者改变它的行为
+      function reactive(object) {
+        return new Proxy(object, {
+          set(obj, prop, val) {
+            obj[prop] = val;
+            if (callbacks.get(obj)) {
+              if (callbacks.get(obj).get(prop)) {
+                for (let callback of callbacks.get(obj).get(prop)) {
+                  callback();
+                }
+              }
+            }
+            return obj[prop];
+          },
+          // get可以获取函数实际调用时候引用了哪些变量，发生注册的行为
+          get(obj, prop) {
+            usedReactives.push([obj, prop]);
+            return obj[prop];
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
