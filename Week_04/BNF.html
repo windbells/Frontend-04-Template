@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>产生式（BNF）表示四则运算</title>
+  </head>
+  <body>
+    <script>
+      // 单独的数字也看做是乘法
+      // 加法表达式等于乘法表达式的列表
+
+      /**
+        <BracketExpression>::=<Number>|
+         "("<AddtiveExpression>")"|
+
+        <MultiplicativeExpression>::=<BracketExpression>|
+          <MultiplicativeExpression>"*"<BracketExpression>|
+          <MultiplicativeExpression>"/"<BracketExpression>|
+        <AddtiveExpression>::=<MultiplicativeExpression>|
+          <AddtiveExpression>"+"<MultiplicativeExpression>|
+          <AddtiveExpression>"-"<MultiplicativeExpression>|
+        */
+    </script>
+  </body>
+</html>
