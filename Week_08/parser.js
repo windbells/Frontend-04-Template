@@ -117,7 +117,7 @@ function computeCSS(element) {
           }
         }
       }
-      console.log(element.computedStyle);
+      // console.log(element.computedStyle);
     }
   }
 }
@@ -144,7 +144,7 @@ function emit(token) {
     }
     // 在startTag入栈的时候，计算CSS规则
     computeCSS(element);
-    layout(element);
+    // layout(element);
 
     top.children.push(element);
     element.parent = top;
@@ -163,8 +163,8 @@ function emit(token) {
         addCSSRules(top.children[0].content);
       }
       stack.pop(); // 配对成功
+      layout(top);
     }
-    layout(top);
     currentTextNode = null;
   } else if (token.type === 'text') {
     if (currentTextNode === null) {
@@ -200,7 +200,6 @@ function data(c) {
 function tagOpen(c) {
   // 判断是不是结束标签
   if (c === '/') {
-    debugger;
     return endTagOpen;
   } else if (c.match(/^[a-zA-Z]$/)) {
     // 开始标签或者自闭合标签
@@ -242,7 +241,6 @@ function tagName(c) {
 
 function endTagOpen(c) {
   if (c.match(/^[a-zA-Z]$/)) {
-    debugger;
     currentToken = {
       type: 'endTag',
       tagName: '',
