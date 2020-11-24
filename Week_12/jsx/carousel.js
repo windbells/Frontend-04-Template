@@ -15,7 +15,7 @@ export class Carousel extends Component {
     for (let record of this.attributes.src) {
       let child = document.createElement('div');
       child.style.backgroundImage = `url(${record})`;
-      child.style.display = 'none';
+      // child.style.display = 'none';
       this.root.appendChild(child);
     }
     let position = 0;
@@ -23,8 +23,8 @@ export class Carousel extends Component {
     // 增加鼠标事件
     this.root.addEventListener('mousedown', (event) => {
       console.log('mousedown');
-      let startX = event.clientX,
-        startY = event.clientY; // 相对于浏览器渲染区域的坐标
+      let startX = event.clientX;
+      // startY = event.clientY; // 相对于浏览器渲染区域的坐标
 
       let move = (event) => {
         let children = this.root.children;
@@ -48,6 +48,7 @@ export class Carousel extends Component {
         // }
       };
       let up = (event) => {
+        let children = this.root.children;
         let x = event.clientX - startX;
         position = position - Math.round(x / 500); // 拖够了一半就显示后一个位置，否则为前一个位置
         // for (let child of children) {
