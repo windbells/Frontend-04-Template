@@ -11,27 +11,51 @@ let tick = () => {
 };
 */
 
+import { linear } from './ease.js';
+
 const TICK = Symbol('tick');
 const TICK_HANDLER = Symbol('tick-handler');
 const ANIMATIONS = Symbol('animations');
+const START_TIME = Symbol('start-time');
+const PAUSE_START = Symbol('pause-start');
+const PAUSE_TIME = Symbol('pause-time');
 
 export class Timeline {
   constructor() {
+    this.state = 'Inited';
     this[ANIMATIONS] = new Set();
+    this[START_TIME] = new Map();
   }
   start() {
+    if (!this.state === 'Inited') {
+      return;
+    }
+    this.state = 'started';
     let startTime = Date.now();
+    this[PAUSE_TIME] = 0;
     this[TICK] = () => {
-      let t = Date.now() - startTime;
+      let now = Date.now();
       for (let animation of this[ANIMATIONS]) {
-        let t0 = t;
+        let t;
+        if (this[START_TIME].get(animation) < startTime) {
+          t = now - startTime - this[PAUSE_TIME] - animation.delay;
+        } else {
+          t =
+            now -
+            this[START_TIME].get(animation) -
+            this[PAUSE_TIME] -
+            animation.delay;
+        }
         if (animation.duration < t) {
           this[ANIMATIONS].delete(animation);
-          t0 = animation.duration;
+          t = animation.duration;
         }
-        animation.receive(t0);
+        // t是负数的话，说明动画还没开始
+        if (t > 0) {
+          animation.receive(t);
+        }
       }
-      requestAnimationFrame(this[TICK]);
+      this[TICK_HANDLER] = requestAnimationFrame(this[TICK]);
     };
     this[TICK]();
   }
@@ -40,13 +64,40 @@ export class Timeline {
     // 设置播放速率
   }
   get rate() {}
-  pause() {}
+  pause() {
+    if (!this.state === 'started') {
+      return;
+    }
+    this.state = 'paused';
+    // 记录暂停开始和结束的时间
+    this[PAUSE_START] = Date.now();
+    cancelAnimationFrame(this[TICK_HANDLER]);
+  }
   resume() {
     // 重新开始
+    if (!this.state === 'paused') {
+      return;
+    }
+    this.state = 'started';
+    this[PAUST_TIME] += Date.now() - this[PAUSE_START]; // 得到暂停时间
+    this[TICK]();
   }
-  reset() {}
-  add(animation) {
+  reset() {
+    this.state = 'Inited';
+    this.pause();
+    let startTime = Date.now();
+    this[PAUSE_TIME] = 0;
+    this[ANIMATIONS] = new Set();
+    this[START_TIME] = new Map();
+    this[PAUSE_START] = 0;
+    this[TICK_HANDLER] = null;
+  }
+  add(animation, startTime) {
+    if (arguments.length < 2) {
+      startTime = Date.now();
+    }
     this[ANIMATIONS].add(animation);
+    this[START_TIME].set(animation, startTime);
   }
   remove(animation) {}
 }
@@ -59,18 +110,27 @@ export class Animation {
     startValue,
     endValue,
     duration,
-    timingFunction
+    delay,
+    timingFunction,
+    template
   ) {
+    timingFunction = timingFunction || ((v) => v);
+    template = template || ((v) => v);
     this.object = object;
     this.property = property;
     this.startValue = startValue;
     this.endValue = endValue;
     this.duration = duration;
+    this.delay = delay;
     this.timingFunction = timingFunction;
+    this.template = template;
   }
   receive(time) {
     let range = this.endValue - this.startValue;
-    this.object[this.property] =
-      this.startValue + (range * time) / this.duration;
+    // timingFunction是关于0-1的time返回0-1的progress的函数
+    let progress = this.timingFunction(time / this.duration);
+    this.object[this.property] = this.template(
+      this.startValue + range * progress
+    );
   }
 }
