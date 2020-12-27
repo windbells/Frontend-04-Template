@@ -8,16 +8,6 @@ let isPan = false;
 let isTap = true;
 let isPress = false;
 
-
-// export function dispatch (type, properties) {
-//   let event = new Event(type);
-//   for (let name in properties) {
-//     event[name] = properties[name];
-//   }
-//   event.dispatchEvent(event);
-//   console.log(event);
-// }
-
 export class Dispatcher  {
   constructor(element) {
     this.element = element;
@@ -121,6 +111,7 @@ export class Recognizer {
     context.startX = point.clientX;
     context.startY = point.clientY;
     this.dispatcher.dispatch('start', {
+      t: Date.now(),
       clientX: point.clientX,
       clientY: point.clientY,
     });

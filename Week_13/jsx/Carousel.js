@@ -8,7 +8,6 @@ export { STATE, ATTRIBUTE } from './framework';; // 以防有其他组件继承C
 export class Carousel extends Component {
   constructor() {
     super();
-
   }
   render () {
     this.root = document.createElement('div');
