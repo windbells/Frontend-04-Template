@@ -15,7 +15,12 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Debug",
-      "program": "${file}"
+      // "program": "${file}",
+
+      "runtimeArgs": ["--require", "@babel/register"], // 给mocha的参数
+      "sourceMaps": true,
+      "args": [],
+      "program": "${workspaceFolder}/node_modules/.bin/mocha"
     }
   ]
 }
