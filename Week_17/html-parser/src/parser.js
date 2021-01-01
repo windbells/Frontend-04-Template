@@ -87,7 +87,7 @@ function tagOpen(c) {
       type: 'text',
       content: c,
     });
-    return;
+    return data;
   }
 }
 
@@ -230,7 +230,7 @@ function afterQuotedAttributeValue(c) {
     return selfClosingStartTag;
   } else if (c === '>') {
     currentToken[currentAttribute.name] = currentAttribute.value;
-    emit(currentAttribute);
+    emit(currentToken);
     return data;
   } else if (c === EOF) {
   } else {

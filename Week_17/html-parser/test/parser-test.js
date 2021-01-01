@@ -79,6 +79,9 @@ describe('parse html:', function () {
     let tree =  parseHTML('<a>2333</a>');
     assert.equal(tree.children.length, 1);
   });
-
+  it('<a \n\t href="">2333</a>', function () {
+    let tree =  parseHTML('<a \n\t href="">2333</a>');
+    assert.equal(tree.children.length, 1);
+  });
 })
 
